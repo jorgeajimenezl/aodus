@@ -1,3 +1,4 @@
+from asyncio.streams import StreamReader, StreamWriter
 import ssl, asyncio
 from typing import Tuple
 
@@ -9,7 +10,7 @@ from aodus.exceptions import AuthenticationException, ConnectionTimeoutException
 
 BUFFER_SIZE = 1024 * 1024
 
-async def create_connection(loop: asyncio.AbstractEventLoop):
+async def create_connection(loop: asyncio.AbstractEventLoop) -> Tuple[StreamReader, StreamWriter]:
     sslContext = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
     reader, writer = await asyncio.open_connection(host="im.todus.cu", port=1756, loop=loop, ssl=sslContext)
 
@@ -19,7 +20,7 @@ class AsyncStreamWriter(object):
     def __init__(self, base: asyncio.StreamWriter) -> None:
         self.base = base
 
-    async def write(self, data: bytes):
+    async def write(self, data: bytes) -> None:
         self.base.write(data)
         await self.base.drain()
 

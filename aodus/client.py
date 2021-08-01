@@ -74,7 +74,10 @@ class Client(Scaffold):
                 return content[5:166].decode()
 
     async def login(self, phone_number: str, password: str) -> str:
-        """Login with phone number and password to get an access token."""
+        """
+        Login with phone number and password to get an access token.
+        """
+
         headers = {
             USER_AGENT: f"ToDus {self.version} Auth",
             CONTENT_TYPE: "application/x-protobuf"
@@ -98,6 +101,10 @@ class Client(Scaffold):
         progress: Optional[Callable[[int, int, Tuple], None]] = None,
         progress_args: Optional[Tuple] = ()
     ) -> str:
+        """"
+        Upload to todus s3 server the buffer of byte specified
+        """
+
         timeout = max(buffer_size / 1024 / 1024 * 20, self.timeout)
 
         bulk, share_url = await request_upload(self.loop, token, buffer_size)
