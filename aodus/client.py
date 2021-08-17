@@ -157,8 +157,12 @@ class Client(Scaffold):
                 retry -= 1
                 if retry <= 0:
                     raise e
-                if callable(retry_callback):
-                    retry_callback()
+
+                if callable(retry_callback) and inspect.iscoroutinefunction(retry_callback):
+                    await retry_callback()
+                else:
+                    func = functools.partial(retry_callback)
+                    await self.loop.run_in_executor(self.executor, func)
 
         return share_url
 
