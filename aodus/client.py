@@ -98,6 +98,7 @@ class Client(Scaffold):
         token: str,
         buffer: Union[IO, AsyncGenerator[bytes, None]],
         buffer_size: Optional[int] = None,
+        retry: Optional[int] = 1,
         progress: Optional[Callable[[int, int, Tuple], None]] = None,
         progress_args: Optional[Tuple] = ()
     ) -> str:
@@ -114,7 +115,7 @@ class Client(Scaffold):
         }
 
         if callable(progress) and not inspect.iscoroutinefunction(buffer):
-            async def file_sender(buff: IO):
+            async def file_sender():
                 offset = 0
 
                 while offset < buffer_size:
@@ -142,12 +143,19 @@ class Client(Scaffold):
                             await self.loop.run_in_executor(self.executor, func)
 
                     yield chunk
-            obj = file_sender(buffer)
+            obj = file_sender()
         else:
             obj = buffer
 
-        async with self.session.put(bulk, data=obj, headers=headers, timeout=timeout) as r:
-            r.raise_for_status()
+        while True:
+            try:
+                async with self.session.put(bulk, data=obj, headers=headers, timeout=timeout) as r:
+                    r.raise_for_status()
+                    break
+            except Exception as e:
+                retry -= 1
+                if retry <= 0:
+                    raise e
 
         return share_url
 
