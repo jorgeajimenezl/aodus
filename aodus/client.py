@@ -99,6 +99,7 @@ class Client(Scaffold):
         buffer: Union[IO, AsyncGenerator[bytes, None]],
         buffer_size: Optional[int] = None,
         retry: Optional[int] = 1,
+        retry_callback: Optional[Callable] = None,
         progress: Optional[Callable[[int, int, Tuple], None]] = None,
         progress_args: Optional[Tuple] = ()
     ) -> str:
@@ -156,6 +157,8 @@ class Client(Scaffold):
                 retry -= 1
                 if retry <= 0:
                     raise e
+                if callable(retry_callback):
+                    retry_callback()
 
         return share_url
 
